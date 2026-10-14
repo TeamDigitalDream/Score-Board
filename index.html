@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Card Table — Scorekeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.0/babel.min.js"></script>
+<style>
+:root{--bg1:#f5f2fc;--bg2:#e4dcf6;--glass:rgba(255,255,255,.72);--solid:#fdfcff;--brd:rgba(90,70,150,.2);--ink:#1d1a33;--dim:#5e5a80;--gold:#a97b2f;--gold2:#c99a4a;--ok:#2f6fe0;--warn:#b5791e;--bad:#d0344a;--muted:#8a87a3;--b1:#c9a0ff;--b2:#ffc27a;--sh:0 14px 40px rgba(50,35,100,.16);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#0a0a22;--bg2:#1a1240;--glass:rgba(32,26,76,.55);--solid:#171238;--brd:rgba(233,209,159,.16);--ink:#f1effa;--dim:#aaa6cf;--gold:#d4af6a;--gold2:#ecd7a6;--ok:#5aa9ff;--warn:#f0b13e;--bad:#ff5d73;--muted:#76729a;--b1:#6a3df0;--b2:#c2307a;--sh:0 18px 50px rgba(0,0,0,.45);color-scheme:dark}}
+:root[data-theme="dark"]{--bg1:#0a0a22;--bg2:#1a1240;--glass:rgba(32,26,76,.55);--solid:#171238;--brd:rgba(233,209,159,.16);--ink:#f1effa;--dim:#aaa6cf;--gold:#d4af6a;--gold2:#ecd7a6;--ok:#5aa9ff;--warn:#f0b13e;--bad:#ff5d73;--muted:#76729a;--b1:#6a3df0;--b2:#c2307a;--sh:0 18px 50px rgba(0,0,0,.45);color-scheme:dark}
+*{box-sizing:border-box}html,body{height:100%}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3,.disp{font-family:Fraunces,Georgia,serif;font-weight:700;letter-spacing:-.01em}
+button{font-family:inherit;color:inherit}
+.blob{position:fixed;border-radius:50%;filter:blur(90px);opacity:.4;pointer-events:none;animation:drift 24s ease-in-out infinite alternate}
+.suit{position:fixed;bottom:-60px;color:var(--gold);opacity:.08;pointer-events:none;animation:rise var(--d) linear infinite;font-size:var(--s)}
+@keyframes drift{to{transform:translate(60px,-50px) scale(1.2)}}
+@keyframes rise{to{transform:translateY(-115vh) rotate(40deg)}}
+.wrap{position:relative;max-width:1040px;margin:0 auto;padding:22px 16px 70px}
+.glass{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--brd);border-radius:22px;box-shadow:var(--sh)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px;font-size:1.35rem}
+.brand i{font-style:normal;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1c1305;font-size:1.3rem}
+.row{display:flex;gap:8px;align-items:center}
+.ib{background:var(--glass);border:1px solid var(--brd);border-radius:12px;padding:9px 13px;cursor:pointer;font-size:.85rem;font-weight:600;transition:transform .15s,border-color .15s}
+.ib:hover{transform:translateY(-2px);border-color:var(--gold)}.ib:active{transform:scale(.95)}
+.menu{position:relative}.pop{position:absolute;right:0;top:calc(100% + 8px);background:var(--solid);border:1px solid var(--brd);border-radius:14px;box-shadow:var(--sh);min-width:190px;overflow:hidden;z-index:40;animation:pin .18s}
+.pop button{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 16px;cursor:pointer;font-size:.9rem}.pop button:hover:not(:disabled){background:var(--glass)}.pop button:disabled{opacity:.4}
+@keyframes pin{from{opacity:0;transform:translateY(-6px) scale(.97)}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.stat{padding:14px 16px}.stat b{display:block;font-family:Fraunces,serif;font-size:1.8rem;line-height:1.1}.stat span{font-size:.8rem;color:var(--dim)}
+.calls{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:6px}
+.call{padding:14px 16px;display:flex;gap:12px;align-items:center}.call small{color:var(--dim);display:block;font-size:.8rem}.call strong{font-family:Fraunces,serif;font-size:1.1rem}
+.av{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#14110a;background:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 28%,transparent)}
+h2.st{font-size:1.2rem;margin:26px 2px 12px;color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.pcard{position:relative;padding:16px;border-radius:22px;background:var(--glass);border:1px solid var(--brd);box-shadow:var(--sh);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transform:perspective(800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .18s ease-out,border-color .3s;overflow:hidden}
+.pcard::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--c) 30%,transparent),transparent 70%)}
+.pcard:hover::after{opacity:1}
+.pcard.lead{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 40px color-mix(in srgb,var(--gold) 30%,transparent)}
+.pcard.lead::before{content:"";position:absolute;top:0;bottom:0;width:60px;left:-80px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 4.5s ease-in-out infinite}
+@keyframes shine{0%,60%{left:-80px}100%{left:110%}}
+.pcard.danger,.pcard.critical{border-color:var(--bad);background:linear-gradient(160deg,color-mix(in srgb,var(--bad) 24%,var(--glass)),var(--glass));animation:beat 1.5s ease-in-out infinite;z-index:2}
+.pcard.critical{background:linear-gradient(160deg,color-mix(in srgb,var(--bad) 40%,var(--glass)),var(--glass));animation:beat .8s ease-in-out infinite,jolt 2.4s infinite}
+@keyframes beat{50%{box-shadow:0 0 0 2px var(--bad),0 0 46px color-mix(in srgb,var(--bad) 55%,transparent)}}
+@keyframes jolt{0%,88%,100%{transform:none}90%{transform:translateX(-5px) rotate(-.6deg)}93%{transform:translateX(5px) rotate(.6deg)}96%{transform:translateX(-3px)}}
+.pcard.danger .rc,.pcard.critical .rc{color:var(--bad)}.pcard.critical .ring{animation:throb .8s ease-in-out infinite}
+@keyframes throb{50%{transform:scale(1.1)}}
+.dz{display:flex;align-items:center;margin:12px -16px -16px;padding:10px 16px;background:var(--bad);color:#fff;font-weight:700;font-size:.85rem;position:relative;overflow:hidden}
+.dz::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0 10px,rgba(255,255,255,.16) 10px 20px);background-size:28px 28px;animation:stripes 1s linear infinite}
+.dz span{position:relative}
+@keyframes stripes{to{background-position:28px 0}}
+.vig{position:fixed;inset:0;pointer-events:none;z-index:50;box-shadow:inset 0 0 140px 30px color-mix(in srgb,var(--bad) 55%,transparent);animation:vig 1.1s ease-in-out infinite}
+@keyframes vig{0%,100%{opacity:.25}50%{opacity:1}}
+.alert{display:flex;align-items:center;gap:12px;padding:13px 18px;margin-bottom:12px;border-radius:18px;background:linear-gradient(90deg,var(--bad),color-mix(in srgb,var(--bad) 55%,#000));color:#fff;font-weight:600;box-shadow:0 10px 34px color-mix(in srgb,var(--bad) 45%,transparent);animation:pin .4s}
+.alert b{font-family:Fraunces,serif;font-size:1.05rem}.alert .si{font-size:1.6rem;animation:throb .7s infinite}
+.erow.dg{border-radius:14px;background:color-mix(in srgb,var(--bad) 12%,transparent);padding-left:10px;padding-right:10px;box-shadow:inset 0 0 0 1.5px var(--bad)}
+.pcard.out{opacity:.55;filter:grayscale(.7);animation:fall .8s}
+@keyframes fall{0%{filter:none;opacity:1;transform:scale(1.06);box-shadow:0 0 60px var(--bad)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.ptop{display:flex;align-items:center;gap:10px;margin-bottom:12px}.ptop .nm{font-family:Fraunces,serif;font-weight:700;font-size:1.1rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ptop .md{font-size:1.4rem}
+.pmid{display:flex;align-items:center;gap:14px}
+.ring{position:relative;flex:none;width:92px;height:92px}.ring svg{transform:rotate(-90deg);width:100%;height:100%}
+.rt{fill:none;stroke:var(--brd);stroke-width:6}.rf{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1),stroke .4s}
+.rc{position:absolute;inset:0;display:grid;place-items:center;font-family:Fraunces,serif;font-weight:700;font-size:1.65rem}
+.pinfo{font-size:.85rem;color:var(--dim);line-height:1.6}.pinfo b{color:var(--ink);font-size:1.05rem}
+.spark{display:block;width:100%;height:30px;margin-top:12px}
+.pill{display:inline-block;font-size:.74rem;font-weight:700;padding:3px 10px;border-radius:20px;background:color-mix(in srgb,var(--pc) 18%,transparent);color:var(--pc)}
+.panel{padding:20px;margin-top:18px}
+.erow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--brd);flex-wrap:wrap}.erow:last-of-type{border-bottom:0}
+.erow .who{flex:1 1 130px;min-width:0}.who b{display:block;font-weight:600}.who small{color:var(--dim)}.who small.bad{color:var(--bad);font-weight:700}
+.chips{display:flex;gap:6px}.chip{border:1px solid var(--brd);background:transparent;border-radius:20px;padding:6px 11px;font-size:.8rem;font-weight:600;cursor:pointer;transition:.15s}.chip:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-2px)}.chip.on{background:var(--gold);color:#1c1305;border-color:var(--gold)}
+.step{display:flex;align-items:center;border:1px solid var(--brd);border-radius:12px;overflow:hidden}.step button{width:36px;height:40px;border:0;background:transparent;font-size:1.2rem;cursor:pointer}.step button:hover{background:var(--glass)}.step input{width:56px;text-align:center;border:0;background:transparent;color:var(--ink);font:600 1.05rem Inter;height:40px;-moz-appearance:textfield}
+input{font-family:inherit}input:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+input[type=text],input[type=number].f{width:100%;background:var(--solid);border:1px solid var(--brd);color:var(--ink);border-radius:12px;padding:12px;font-size:1rem}
+.cta{width:100%;border:0;border-radius:14px;padding:15px;font-size:1.05rem;font-weight:700;cursor:pointer;color:#1c1305;background:linear-gradient(135deg,var(--gold),var(--gold2));box-shadow:0 8px 22px color-mix(in srgb,var(--gold) 35%,transparent);margin-top:12px;transition:transform .15s,filter .15s}
+.cta:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.08)}.cta:active{transform:scale(.98)}.cta:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.center{display:grid;place-items:center;min-height:82vh}.setup{max-width:540px;width:100%;padding:28px}
+.setup h1{font-size:2.3rem;margin:0 0 4px}.setup p.sub{margin:0 0 22px;color:var(--dim)}
+.field{margin-bottom:18px}label{display:block;font-size:.85rem;color:var(--dim);margin-bottom:7px;font-weight:600}
+.prow{display:flex;gap:8px;margin-bottom:8px;align-items:center;animation:pin .25s}.prow input{flex:1}
+.x{background:transparent;border:1px solid var(--brd);color:var(--bad);border-radius:10px;width:40px;height:44px;cursor:pointer}
+.add{width:100%;background:transparent;border:1.5px dashed var(--brd);color:var(--gold);border-radius:12px;padding:11px;cursor:pointer;font-weight:600}.add:hover{border-color:var(--gold)}
+.err{color:var(--bad);font-size:.85rem;margin:6px 0}
+.chart{width:100%;height:auto;display:block}.chart .ln{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0;animation:draw 1.1s ease-out}
+@keyframes draw{from{stroke-dashoffset:1}}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:.82rem;color:var(--dim)}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:var(--c)}
+.hb{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:0;padding:11px 0;cursor:pointer;font-size:.95rem;border-bottom:1px solid var(--brd);text-align:left}
+.re{display:flex;justify-content:space-between;padding:8px 12px;margin:4px 0;border-radius:10px;background:var(--glass);font-size:.88rem;color:var(--dim)}
+.tbl{width:100%;border-collapse:collapse;font-size:.9rem;margin:10px 0}.tbl th{text-align:left;color:var(--dim);font-weight:600;font-size:.8rem;padding-bottom:6px}.tbl td{padding:8px 0;border-top:1px solid var(--brd)}
+.ov{position:fixed;inset:0;background:rgba(4,12,8,.6);backdrop-filter:blur(5px);display:grid;place-items:center;padding:18px;z-index:100;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.modal{background:var(--solid);border:1px solid var(--brd);border-radius:24px;padding:26px;max-width:450px;width:100%;box-shadow:var(--sh);animation:pop .35s cubic-bezier(.2,1.2,.3,1);max-height:90vh;overflow:auto}
+@keyframes pop{from{opacity:0;transform:scale(.88) translateY(20px)}}
+.modal h3{margin:0 0 10px;font-size:1.3rem}.modal p{color:var(--dim);line-height:1.5;font-size:.92rem}
+.mb{display:flex;gap:10px;margin-top:18px}.b2{flex:1;padding:12px;border-radius:12px;border:1px solid var(--brd);background:transparent;cursor:pointer;font-weight:600}.b2:hover{border-color:var(--gold)}.b2.d{background:var(--bad);border:0;color:#fff}
+.win{text-align:center;position:relative}.win .tr{font-size:3.6rem;animation:bob 1.6s ease-in-out infinite}.win h1{font-size:2.4rem;margin:4px 0;color:var(--gold)}@keyframes bob{50%{transform:translateY(-8px) rotate(4deg)}}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:101}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--solid);border:1px solid var(--gold);padding:11px 18px;border-radius:30px;box-shadow:var(--sh);z-index:120;font-weight:600;font-size:.9rem;animation:pin .25s}
+@media(max-width:560px){.stats{gap:8px}.stat b{font-size:1.4rem}.grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="blob" style="width:480px;height:480px;left:-120px;top:-100px;background:var(--b1)"></div>
+<div class="blob" style="width:420px;height:420px;right:-100px;bottom:-80px;background:var(--b2);animation-delay:-9s"></div>
+<div id="bgs"></div>
+<div id="root"></div>
+<script>
+document.getElementById("bgs").innerHTML=["♠","♥","♦","♣","♠","♦","♣","♥"].map((s,i)=>`<span class="suit" style="left:${6+i*12}%;--s:${34+(i%3)*22}px;--d:${26+i*4}s;animation-delay:-${i*5}s">${s}</span>`).join("");
+</script>
+<script type="text/babel" data-presets="react">
+const {useState,useMemo,useEffect,useRef,useLayoutEffect}=React;
+const MEDAL=["🥇","🥈","🥉"],COLORS=["#e9b44c","#5aa9ff","#e8708a","#b58cf0","#f08c4e","#ff7ad9","#7de0ff","#ffd9a0"];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const col=p=>COLORS[p.ci%COLORS.length];
+const store={get(){try{return JSON.parse(localStorage.getItem("ct-game"))}catch(e){return null}},set(v){try{v?localStorage.setItem("ct-game",JSON.stringify(v)):localStorage.removeItem("ct-game")}catch(e){}}};
+let actx;const beep=(f=520,d=.14,t="sine")=>{if(!beep.on)return;try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(.06,actx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d)}catch(e){}};
+const buzz=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+const statusFor=(s,m)=>s>=m?"out":s/m>=.9?"critical":s/m>=.75?"danger":s/m>=.5?"warn":"ok";
+const META={ok:["Comfortable","var(--ok)"],warn:["Getting close","var(--warn)"],danger:["Danger","var(--bad)"],critical:["Critical","var(--bad)"],out:["Out","var(--muted)"]};
+const cum=(g,id)=>{let t=0;const a=[0];g.history.forEach(r=>{if(r.scores[id]!==undefined){t+=Number(r.scores[id]);a.push(t)}});return a};
+const recompute=(players,history,max)=>{const t={},s={};players.forEach(p=>{t[p.id]=0;s[p.id]="ok"});history.forEach(r=>Object.entries(r.scores).forEach(([id,v])=>{if(s[id]!=="out"){t[id]+=Number(v);if(t[id]>=max)s[id]="out"}}));return players.map(p=>({...p,total:t[p.id],status:s[p.id]}))};
+function useCount(v){const [n,setN]=useState(v);const from=useRef(v);useEffect(()=>{const s=from.current,t0=performance.now();let r;const f=t=>{const k=Math.min(1,(t-t0)/800),e=1-Math.pow(1-k,3);setN(Math.round(s+(v-s)*e));if(k<1)r=requestAnimationFrame(f);else from.current=v};r=requestAnimationFrame(f);return()=>cancelAnimationFrame(r)},[v]);return n}
+
+function Confetti(){const r=useRef();useEffect(()=>{const c=r.current,x=c.getContext("2d"),w=c.width=innerWidth,h=c.height=innerHeight;const ps=Array.from({length:170},()=>({x:Math.random()*w,y:-Math.random()*h,s:5+Math.random()*7,vx:-1.5+Math.random()*3,vy:2+Math.random()*4,a:Math.random()*6,va:-.2+Math.random()*.4,c:COLORS[Math.floor(Math.random()*8)]}));let id;const f=()=>{x.clearRect(0,0,w,h);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a+=p.va;if(p.y>h)p.y=-10;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore()});id=requestAnimationFrame(f)};f();return()=>cancelAnimationFrame(id)},[]);return <canvas ref={r} className="confetti"/>}
+
+function Confirm({title,body,label,onCancel,onConfirm}){return <div className="ov" onClick={onCancel}><div className="modal" onClick={e=>e.stopPropagation()}><h3>{title}</h3><p>{body}</p><div className="mb"><button className="b2" onClick={onCancel}>Cancel</button><button className="b2 d" onClick={onConfirm}>{label}</button></div></div></div>}
+
+function Setup({onStart}){
+  const [name,setName]=useState(""),[pl,setPl]=useState(["","",""]),[max,setMax]=useState(250),[err,setErr]=useState("");
+  const start=()=>{const names=pl.map(p=>p.trim()).filter(Boolean);
+    if(names.length<2)return setErr("Add at least 2 players.");
+    if(new Set(names.map(n=>n.toLowerCase())).size!==names.length)return setErr("Player names must be unique.");
+    if(!(Number(max)>0))return setErr("Enter a valid elimination limit.");
+    beep(660,.2);onStart({name:name.trim()||"Card Game",maxPoints:Number(max),players:names.map((n,i)=>({id:uid(),name:n,total:0,status:"ok",ci:i}))})};
+  return <div className="center"><div className="glass setup">
+    <h1 className="disp">♠ Deal the next hand</h1><p className="sub">Set up the table. Lowest score wins; hit the limit and you're out.</p>
+    <div className="field"><label>Game name (optional)</label><input type="text" placeholder="Sunday card game" value={name} onChange={e=>setName(e.target.value)}/></div>
+    <div className="field"><label>Players</label>
+      {pl.map((p,i)=><div className="prow" key={i}><span className="av" style={{"--c":COLORS[i%8]}}>{(p.trim()[0]||i+1).toString().toUpperCase()}</span><input type="text" placeholder={"Player "+(i+1)} value={p} onChange={e=>setPl(pl.map((q,j)=>j===i?e.target.value:q))}/>{pl.length>2&&<button className="x" onClick={()=>setPl(pl.filter((_,j)=>j!==i))}>✕</button>}</div>)}
+      {pl.length<8&&<button className="add" onClick={()=>setPl([...pl,""])}>+ Add player</button>}</div>
+    <div className="field"><label>Elimination limit</label>
+      <div className="chips" style={{marginBottom:10,flexWrap:"wrap"}}>{[100,150,250,500].map(v=><button key={v} className={"chip"+(Number(max)===v?" on":"")} onClick={()=>setMax(v)}>{v}</button>)}</div>
+      <input type="number" className="f" min="1" value={max} onChange={e=>setMax(e.target.value)}/></div>
+    {err&&<div className="err">{err}</div>}
+    <button className="cta" onClick={start}>Start game</button></div></div>;
+}
+
+function Spark({d,max,color}){if(d.length<2)return <div className="spark"/>;const top=Math.max(max,...d);const pts=d.map((v,i)=>(i/(d.length-1)*100)+","+(27-v/top*24)).join(" ");return <svg className="spark" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points={pts} fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke"/></svg>}
+
+function PlayerCard({p,idx,lead,game,reg}){
+  const ref=useRef(),out=p.status==="out",st=statusFor(p.total,game.maxPoints),[label,color]=META[st],n=useCount(p.total),c=col(p),R=38,C=2*Math.PI*R;
+  const move=e=>{const el=ref.current,b=el.getBoundingClientRect(),x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;el.style.setProperty("--rx",(-y*9)+"deg");el.style.setProperty("--ry",(x*11)+"deg");el.style.setProperty("--mx",(x+.5)*100+"%");el.style.setProperty("--my",(y+.5)*100+"%")};
+  const leave=()=>{const el=ref.current;el.style.setProperty("--rx","0deg");el.style.setProperty("--ry","0deg")};
+  const isLead=!out&&p.total===lead;
+  return <div ref={el=>{ref.current=el;reg(p.id,el)}} data-id={p.id} className={"pcard "+st+(isLead?" lead":"")} style={{"--c":c}} onPointerMove={move} onPointerLeave={leave}>
+    <div className="ptop"><span className="av" style={{"--c":c}}>{p.name[0].toUpperCase()}</span><span className="nm">{p.name}</span><span className="md">{out?"❌":idx<3?MEDAL[idx]:"#"+(idx+1)}</span></div>
+    <div className="pmid"><div className="ring"><svg viewBox="0 0 92 92"><circle cx="46" cy="46" r={R} className="rt"/><circle cx="46" cy="46" r={R} className="rf" stroke={color} strokeDasharray={C} strokeDashoffset={C*(1-Math.min(1,p.total/game.maxPoints))}/></svg><div className="rc">{n}</div></div>
+      <div className="pinfo"><span className="pill" style={{"--pc":color}}>{label}</span><div style={{marginTop:6}}>{out?"Out of the game":<><b>{Math.max(0,game.maxPoints-p.total)}</b> pts left<br/>{isLead?"Leading the table":"+"+(p.total-lead)+" behind leader"}</>}</div></div></div>
+    <Spark d={cum(game,p.id)} max={game.maxPoints} color={c}/>{(st==="danger"||st==="critical")&&<div className="dz"><span>{st==="critical"?"🚨 About to be out · ":"⚠️ Heading for the exit · "}{game.maxPoints-p.total} pts left</span></div>}</div>;
+}
+
+function Entry({game,active,onSubmit}){
+  const [v,setV]=useState({}),refs=useRef([]);
+  const set=(id,x)=>setV(o=>({...o,[id]:x}));
+  const ok=active.every(p=>v[p.id]!==undefined&&v[p.id]!==""&&Number(v[p.id])>=0);
+  const bump=(id,d)=>{set(id,String(Math.max(0,(Number(v[id])||0)+d)));beep(380+d*8,.06)};
+  const go=()=>{if(ok){onSubmit(v);setV({})}};
+  return <div className="glass panel"><h3 style={{margin:"0 0 4px"}}>Round {game.round+1} scores</h3><div style={{color:"var(--dim)",fontSize:".85rem"}}>Tap a chip to add points, or type. Enter moves to the next player.</div>
+    {active.map((p,i)=>{const val=v[p.id]??"",proj=p.total+(Number(val)||0),dies=val!==""&&proj>=game.maxPoints;
+      return <div className={"erow"+(p.total/game.maxPoints>=.75?" dg":"")} key={p.id}><span className="av" style={{"--c":col(p)}}>{p.name[0].toUpperCase()}</span>
+        <div className="who"><b>{p.name}</b>{dies?<small className="bad">Would be out at {proj}</small>:<small>Now {p.total} → {val===""?"…":proj}</small>}</div>
+        <div className="chips"><button className={"chip"+(val==="0"?" on":"")} onClick={()=>{set(p.id,"0");beep(300,.06)}}>0</button>{[5,10,20].map(d=><button key={d} className="chip" onClick={()=>bump(p.id,d)}>+{d}</button>)}</div>
+        <div className="step"><button onClick={()=>bump(p.id,-1)} aria-label="minus one">−</button><input type="number" min="0" inputMode="numeric" placeholder="0" ref={el=>refs.current[i]=el} value={val} onChange={e=>set(p.id,e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){refs.current[i+1]?refs.current[i+1].focus():go()}}}/><button onClick={()=>bump(p.id,1)} aria-label="plus one">+</button></div></div>})}
+    <button className="cta" disabled={!ok} onClick={go}>Submit round</button></div>;
+}
+
+function Chart({game}){
+  if(!game.history.length)return null;
+  const Rn=game.history.length,W=640,H=230,P={l:36,r:14,t:12,b:26},S=game.players.map(p=>({p,d:cum(game,p.id)})),top=Math.max(game.maxPoints,...S.flatMap(s=>s.d))*1.05;
+  const X=i=>P.l+i/Rn*(W-P.l-P.r),Y=v=>H-P.b-v/top*(H-P.t-P.b);
+  return <div className="glass panel"><h3 style={{margin:"0 0 10px"}}>Score race</h3>
+    <svg className="chart" viewBox={`0 0 ${W} ${H}`}>
+      {[0,.25,.5,.75].map(f=><g key={f}><line x1={P.l} x2={W-P.r} y1={Y(game.maxPoints*f)} y2={Y(game.maxPoints*f)} stroke="var(--brd)"/><text x={P.l-6} y={Y(game.maxPoints*f)+4} textAnchor="end" fontSize="10" fill="var(--dim)">{Math.round(game.maxPoints*f)}</text></g>)}
+      <line x1={P.l} x2={W-P.r} y1={Y(game.maxPoints)} y2={Y(game.maxPoints)} stroke="var(--bad)" strokeDasharray="5 4"/><text x={W-P.r} y={Y(game.maxPoints)-5} textAnchor="end" fontSize="10" fill="var(--bad)">Limit {game.maxPoints}</text>
+      {Array.from({length:Rn+1},(_,i)=><text key={i} x={X(i)} y={H-8} textAnchor="middle" fontSize="10" fill="var(--dim)">{i}</text>)}
+      {S.map(({p,d})=><g key={p.id+Rn}><path className="ln" pathLength="1" stroke={col(p)} d={d.map((v,i)=>(i?"L":"M")+X(i)+","+Y(v)).join(" ")}/><circle cx={X(d.length-1)} cy={Y(d[d.length-1])} r="4.5" fill={col(p)}/></g>)}
+    </svg><div className="legend">{game.players.map(p=><span key={p.id}><i style={{"--c":col(p)}}/>{p.name}</span>)}</div></div>;
+}
+
+function EditRound({round,players,onCancel,onSave}){
+  const [vals,setVals]=useState({...round.scores}),[sure,setSure]=useState(false);
+  return <div className="ov" onClick={onCancel}><div className="modal" onClick={e=>e.stopPropagation()}>
+    {!sure?<><h3>Correct round {round.roundNumber}</h3>{players.map(p=><div className="erow" key={p.id}><div className="who"><b>{p.name}</b></div><div className="step"><input type="number" min="0" value={vals[p.id]} onChange={e=>setVals({...vals,[p.id]:e.target.value})}/></div></div>)}
+      <div className="mb"><button className="b2" onClick={onCancel}>Cancel</button><button className="b2 d" onClick={()=>setSure(true)}>Save</button></div></>
+    :<><h3>Update previous round?</h3><p>This recalculates every score after round {round.roundNumber}.</p><div className="mb"><button className="b2" onClick={()=>setSure(false)}>Back</button><button className="b2 d" onClick={()=>onSave(vals)}>Confirm</button></div></>}</div></div>;
+}
+
+function App(){
+  const [game,setGame]=useState(store.get),[sum,setSum]=useState(null),[confirm,setConfirm]=useState(null),[menu,setMenu]=useState(false),[rules,setRules]=useState(false),[edit,setEdit]=useState(null),[open,setOpen]=useState({}),[theme,setTheme]=useState(null),[snd,setSnd]=useState(true),[hideWin,setHideWin]=useState(false),[toast,setToast]=useState("");
+  const menuRef=useRef(),els=useRef({}),prev=useRef({});
+  const reg=(id,el)=>{if(el)els.current[id]=el};
+  useEffect(()=>{beep.on=snd},[snd]);
+  useEffect(()=>{if(theme)document.documentElement.setAttribute("data-theme",theme)},[theme]);
+  useEffect(()=>{store.set(game)},[game]);
+  useEffect(()=>{const h=e=>{if(menuRef.current&&!menuRef.current.contains(e.target))setMenu(false)};document.addEventListener("pointerdown",h);return()=>document.removeEventListener("pointerdown",h)},[]);
+  useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(""),2200);return()=>clearTimeout(t)},[toast]);
+  const active=game?game.players.filter(p=>p.status!=="out"):[],outs=game?game.players.filter(p=>p.status==="out"):[];
+  const sorted=useMemo(()=>active.slice().sort((a,b)=>a.total-b.total),[game]);
+  const lead=sorted.length?sorted[0].total:0,winner=game&&active.length===1?active[0]:null,over=!!winner||(game&&!active.length);
+  const risk=active.filter(p=>p.total/game.maxPoints>=.75).sort((a,b)=>b.total-a.total),crit=risk.some(p=>p.total/game.maxPoints>=.9);
+  const closest=active.length?active.slice().sort((a,b)=>b.total-a.total)[0]:null;
+  useEffect(()=>{if(winner){[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.3,"triangle"),i*150));buzz([60,40,60,40,200])}},[winner&&winner.id]);
+  useLayoutEffect(()=>{const next={};Object.entries(els.current).forEach(([id,el])=>{if(!el.isConnected)return;const b={l:el.offsetLeft,t:el.offsetTop};next[id]=b;const o=prev.current[id];if(o&&(o.l!==b.l||o.t!==b.t))el.animate([{transform:`translate(${o.l-b.l}px,${o.t-b.t}px)`},{transform:"none"}],{duration:650,easing:"cubic-bezier(.2,.9,.3,1)"})});prev.current=next});
+  const sR=useCount(game?game.round:0),sP=useCount(active.length);
+  if(!game)return <Setup onStart={cfg=>{setGame({...cfg,round:0,history:[]});setHideWin(false);prev.current={}}}/>;
+  const submit=v=>{const rs={};active.forEach(p=>rs[p.id]=Number(v[p.id]));
+    const history=[...game.history,{roundNumber:game.round+1,scores:rs}],players=recompute(game.players,history,game.maxPoints);
+    const elim=players.filter(p=>p.status==="out"&&game.players.find(o=>o.id===p.id&&o.status!=="out"));
+    const rows=active.map(p=>{const np=players.find(x=>x.id===p.id);return{name:p.name,added:rs[p.id],prev:p.total,next:np.total,status:np.status}});
+    setGame({...game,players,round:game.round+1,history});setSum({n:game.round+1,rows,elim});
+    if(elim.length){beep(180,.4,"sawtooth");buzz([80,40,160])}else if(players.some(p=>p.status!=="out"&&p.total/game.maxPoints>=.9)){beep(240,.3,"square");buzz([50,60,50])}else{beep(620,.12);buzz(30)}};
+  const undo=()=>{const history=game.history.slice(0,-1);setGame({...game,players:recompute(game.players,history,game.maxPoints),round:game.round-1,history});setConfirm(null);setHideWin(false);setToast("Last round undone")};
+  const applyEdit=(rn,vals)=>{const ns={};Object.keys(vals).forEach(k=>ns[k]=Number(vals[k])||0);const history=game.history.map(r=>r.roundNumber===rn?{...r,scores:ns}:r);setGame({...game,players:recompute(game.players,history,game.maxPoints),history});setEdit(null);setToast("Round "+rn+" corrected")};
+  const reset=()=>{setGame(null);setConfirm(null);setMenu(false);setSum(null);setHideWin(false);els.current={};prev.current={}};
+  const dark=theme?theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+  return <div className="wrap">
+    <div className="bar"><div className="brand disp"><i>♠</i>{game.name}</div>
+      <div className="row"><button className="ib" onClick={()=>setSnd(s=>!s)} aria-label="Toggle sound">{snd?"🔊":"🔇"}</button><button className="ib" onClick={()=>setTheme(dark?"light":"dark")}>{dark?"☀️ Light":"🌙 Dark"}</button>
+        <div className="menu" ref={menuRef}><button className="ib" onClick={()=>setMenu(o=>!o)}>☰ Menu</button>
+          {menu&&<div className="pop"><button onClick={()=>{setConfirm("newgame");setMenu(false)}}>New game</button><button disabled={!game.history.length} onClick={()=>{setConfirm("undo");setMenu(false)}}>Undo last round</button><button onClick={()=>{setRules(true);setMenu(false)}}>Game rules</button><button onClick={()=>{setConfirm("reset");setMenu(false)}}>Reset game</button></div>}</div></div></div>
+
+    <div className="stats"><div className="glass stat"><b>{sR}</b><span>Round</span></div><div className="glass stat"><b>{sP}</b><span>Players left</span></div><div className="glass stat"><b>{game.maxPoints}</b><span>Elimination limit</span></div></div>
+    {!over&&risk.length>0&&<>{crit&&<div className="vig"/>}<div className="alert"><span className="si">{crit?"🚨":"⚠️"}</span><div>{risk.map(p=>p.name).join(", ")} {risk.length>1?"are":"is"} close to elimination<br/><b>{risk.map(p=>p.name+": "+(game.maxPoints-p.total)+" pts left").join(" · ")}</b></div></div></>}
+    {!over&&sorted.length>0&&<div className="calls"><div className="glass call"><span className="av" style={{"--c":col(sorted[0])}}>{sorted[0].name[0].toUpperCase()}</span><div><small>🏆 Leading</small><strong>{sorted[0].name} · {sorted[0].total}</strong></div></div>
+      {closest&&<div className="glass call"><span className="av" style={{"--c":col(closest)}}>{closest.name[0].toUpperCase()}</span><div><small>⚠️ Closest to out</small><strong>{closest.name} · {game.maxPoints-closest.total} pts left</strong></div></div>}</div>}
+
+    <h2 className="st disp">Scoreboard</h2>
+    <div className="grid">{sorted.map((p,i)=><PlayerCard key={p.id} p={p} idx={i} lead={lead} game={game} reg={reg}/>)}</div>
+    {outs.length>0&&<><h2 className="st disp">Eliminated</h2><div className="grid">{outs.slice().sort((a,b)=>a.total-b.total).map((p,i)=><PlayerCard key={p.id} p={p} idx={i} lead={lead} game={game} reg={reg}/>)}</div></>}
+
+    {!over&&<Entry key={game.round+"-"+active.length} game={game} active={active} onSubmit={submit}/>}
+    <Chart game={game}/>
+    {game.history.length>0&&<div className="glass panel"><h3 style={{margin:"0 0 6px"}}>Round history</h3>
+      {game.history.slice().reverse().map(r=>{const best=Object.entries(r.scores).sort((a,b)=>a[1]-b[1])[0],bp=game.players.find(p=>p.id===best[0]);
+        return <div key={r.roundNumber}><button className="hb" onClick={()=>setOpen(o=>({...o,[r.roundNumber]:!o[r.roundNumber]}))}><span><b>Round {r.roundNumber}</b> <span style={{color:"var(--dim)",fontSize:".85rem"}}>· best: {bp.name} (+{best[1]})</span></span>
+          <span className="row">{r.roundNumber===game.round&&<span style={{color:"var(--gold)",fontSize:".82rem"}} onClick={e=>{e.stopPropagation();setEdit(r)}}>✏️ Correct</span>}<span>{open[r.roundNumber]?"▲":"▼"}</span></span></button>
+          {open[r.roundNumber]&&game.players.filter(p=>r.scores[p.id]!==undefined).map(p=><div className="re" key={p.id}><span>{p.name}</span><span>+{r.scores[p.id]}</span></div>)}</div>})}</div>}
+    <div className="glass panel"><h3 style={{margin:"0 0 4px"}}>Leaderboard</h3><table className="tbl"><thead><tr><th>Rank</th><th>Player</th><th>Score</th><th>Gap</th></tr></thead><tbody>
+      {sorted.map((p,i)=><tr key={p.id}><td>{i<3?MEDAL[i]:i+1}</td><td>{p.name}</td><td>{p.total}</td><td>{p.total===lead?"Leader":"+"+(p.total-lead)}</td></tr>)}
+      {outs.map(p=><tr key={p.id} style={{color:"var(--muted)"}}><td>❌</td><td>{p.name}</td><td>{p.total}</td><td>Out</td></tr>)}</tbody></table></div>
+
+    {sum&&!winner&&<div className="ov" onClick={()=>setSum(null)}><div className="modal" onClick={e=>e.stopPropagation()}><h3>Round {sum.n} complete</h3>
+      <table className="tbl"><thead><tr><th>Player</th><th>Added</th><th>Total</th><th>Status</th></tr></thead><tbody>{sum.rows.map(r=><tr key={r.name}><td>{r.name}</td><td>+{r.added}</td><td>{r.prev} → {r.next}</td><td>{r.status==="out"?"Out":"In"}</td></tr>)}</tbody></table>
+      {sum.elim.length>0&&<div style={{padding:12,background:"color-mix(in srgb,var(--bad) 14%,transparent)",borderRadius:12}}>🚨 <b>{sum.elim.map(e=>e.name).join(", ")}</b> reached the {game.maxPoints} point limit.</div>}
+      <button className="cta" onClick={()=>setSum(null)}>Continue</button></div></div>}
+    {winner&&!hideWin&&<div className="ov"><Confetti/><div className="modal win"><div className="tr">🏆</div><div style={{color:"var(--dim)",fontSize:".9rem"}}>Last player standing</div><h1 className="disp">{winner.name}</h1><p>Final score: {winner.total} · {game.round} rounds · {game.players.length} players</p>
+      <table className="tbl" style={{textAlign:"left"}}><tbody>{game.players.slice().sort((a,b)=>a.id===winner.id?-1:b.id===winner.id?1:a.total-b.total).map(p=><tr key={p.id}><td>{p.id===winner.id?"🏆":"❌"}</td><td>{p.name}</td><td>{p.total}</td></tr>)}</tbody></table>
+      <div className="mb"><button className="b2" onClick={()=>setHideWin(true)}>View table</button><button className="b2 d" style={{background:"var(--gold)",color:"#1c1305"}} onClick={()=>setConfirm("newgame")}>New game</button></div></div></div>}
+    {rules&&<div className="ov" onClick={()=>setRules(false)}><div className="modal" onClick={e=>e.stopPropagation()}><h3>Card game rules</h3><ul style={{color:"var(--dim)",lineHeight:1.8,paddingLeft:18,fontSize:".92rem"}}><li>Lowest score is best.</li><li>Points are added after every round.</li><li>Reaching or passing {game.maxPoints} puts you out.</li><li>Out players get no more points.</li><li>The last active player wins.</li><li>Your game is saved on this device, so a refresh won't lose it.</li></ul><button className="b2" style={{width:"100%"}} onClick={()=>setRules(false)}>Close</button></div></div>}
+    {edit&&<EditRound round={edit} players={game.players.filter(p=>edit.scores[p.id]!==undefined)} onCancel={()=>setEdit(null)} onSave={v=>applyEdit(edit.roundNumber,v)}/>}
+    {confirm==="reset"&&<Confirm title="Reset game?" body="This erases all scores and round history. It can't be undone." label="Reset game" onCancel={()=>setConfirm(null)} onConfirm={reset}/>}
+    {confirm==="newgame"&&<Confirm title="Start a new game?" body="This leaves the current game and its scores behind." label="New game" onCancel={()=>setConfirm(null)} onConfirm={reset}/>}
+    {confirm==="undo"&&<Confirm title="Undo last round?" body={"This removes the points from round "+game.round+" and restores the previous scores."} label="Undo round" onCancel={()=>setConfirm(null)} onConfirm={undo}/>}
+    {toast&&<div className="toast">{toast}</div>}
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
